@@ -1,0 +1,53 @@
+# ============================================================
+# docker-compose.yml - Menjalankan BERSAMA: Service AI + Monitoring + Redis Cache
+# Jalankan: docker compose up --build -d
+# ============================================================
+services:
+
+  # 1) AI Service UTAMA (FastAPI Churn Predictor)
+  churn-api:
+    build: .
+    container_name: bnsp-churn-api-v1
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV_NAME=production
+      - LOG_LEVEL=info
+      # (Opsional) simpan secret dari file .env, JANGAN hardcode!
+      # - API_KEY=${API_KEY}
+    volumes:
+      # Mount folder models agar bisa update model tanpa rebuild image
+      - ./saved_models:/app/saved_models:ro
+      # Mount folder logs untuk persistensi
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ai-net
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+
+  # 2) (Opsional) REDIS Cache - simpan hasil prediksi 5 menit, hindari hit model ulang
+  redis-cache:
+    image: redis:7-alpine
+    container_name: bnsp-redis-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    networks:
+      - ai-net
+
+networks:
+  ai-net:
+    driver: bridge
+
+volumes:
+  logs:

@@ -1,0 +1,31 @@
+# =====================
+# .dockerignore - JANGAN MASUKKAN FILE INI KE DALAM IMAGE
+# =====================
+# Folder virtual environment
+venv_bnsp/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.env
+
+# Git
+.git/
+.gitignore
+
+# Output chart (besar & tidak dibutuhkan di service)
+output_charts/
+sample_images/
+
+# Notebook temp
+.ipynb_checkpoints/
+*.ipynb
+
+# Log & cache
+*.log
+.cache/
+.pytest_cache/
+
+# Dokumentasi (jika besar, opsional dikeluarkan)
+README.md
+docs/
